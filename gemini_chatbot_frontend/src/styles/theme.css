@@ -1,0 +1,12 @@
+:root{
+  /* Ocean Professional */
+  --primary:#2563EB;   /* Blue */
+  --secondary:#F59E0B; /* Amber (used as success/accent) */
+  --error:#EF4444;
+  --bg:#f9fafb;
+  --surface:#ffffff;
+  --text:#111827;
+}
+
+/* Utility accents and subtle transitions */
+* { transition: color .15s ease, background-color .15s ease, border-color .15s ease; }

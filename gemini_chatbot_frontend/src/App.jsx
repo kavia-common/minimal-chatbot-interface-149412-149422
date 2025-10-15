@@ -1,43 +1,44 @@
 import React, { useState } from 'react'
+import './styles/theme.css'
+import './index.css'
+import ChatForm from './components/ChatForm.jsx'
+import ResponseCard from './components/ResponseCard.jsx'
+import { postChat } from './api/client.js'
 
-const API_URL = 'http://localhost:3001/chat'
-
-export default function App(){
-  const [message, setMessage] = useState('')
+/**
+ * PUBLIC_INTERFACE
+ * App renders a centered chat UI with Ocean Professional theme,
+ * handles message submission to backend /chat, and shows loading and error states.
+ */
+export default function App() {
   const [reply, setReply] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  async function sendMessage(){
+  async function handleSubmit(message) {
     setError('')
     setReply('')
-    const text = message.trim()
-    if(!text){
+    const text = (message || '').trim()
+    if (!text) {
       setError('Please enter a message.')
       return
     }
     setLoading(true)
-    try{
-      const res = await fetch(API_URL, {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ message: text })
-      })
-      const data = await res.json()
-      if(!res.ok){
-        const errMsg = (data && (data.error || data.detail)) || 'Request failed'
-        throw new Error(errMsg)
-      }
-      setReply(data.reply || '')
-    }catch(e){
-      setError(e.message || 'Something went wrong')
-    }finally{
+    try {
+      const data = await postChat(text)
+      // Expect { reply } but best-effort fallback to common fields
+      const best = data?.reply ?? data?.text ?? data?.message ?? ''
+      setReply(String(best || ''))
+    } catch (e) {
+      const msg = e?.message || 'Something went wrong'
+      setError(msg)
+    } finally {
       setLoading(false)
     }
   }
 
-  function retry(){
-    sendMessage()
+  const onRetry = () => {
+    setError('')
   }
 
   return (
@@ -51,29 +52,17 @@ export default function App(){
         {error && (
           <div className="error" role="alert">
             <span>{error}</span>
-            <button className="button secondary" onClick={retry}>Retry</button>
+            <button className="button secondary" onClick={onRetry}>Dismiss</button>
           </div>
         )}
 
         <div className="form">
-          <textarea
-            placeholder="Type your message..."
-            value={message}
-            onChange={e=>setMessage(e.target.value)}
-            disabled={loading}
-          />
-          <div className="actions">
-            <button className="button" onClick={sendMessage} disabled={loading}>
-              {loading ? 'Sending...' : 'Send'}
-            </button>
-          </div>
+          <ChatForm onSubmit={handleSubmit} loading={loading} />
         </div>
 
-        <div style={{height:12}} />
+        <div style={{ height: 12 }} />
 
-        <div className="panel" aria-live="polite">
-          {reply ? reply : (loading ? 'Awaiting response...' : 'Response will appear here.')}
-        </div>
+        <ResponseCard loading={loading} reply={reply} />
       </div>
     </div>
   )
