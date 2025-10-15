@@ -5,7 +5,8 @@ import react from '@vitejs/plugin-react'
 // Vite configuration for the Gemini Chatbot frontend.
 // - Binds dev server to 0.0.0.0 and port 3000 for preview systems
 // - Allows the preview domain so origin checks pass
-// - Adds a dev proxy for '/chat' -> 'http://localhost:3001' to avoid CORS in development
+// - Adds a dev proxy for '/chat' -> 'http://localhost:3001' for local dev only
+//   (In preview, the frontend uses an absolute backend URL and does NOT rely on this proxy)
 const PREVIEW_ALLOWED_HOST = 'vscode-internal-33666-beta.beta01.cloud.kavia.ai'
 
 export default defineConfig({
@@ -16,6 +17,7 @@ export default defineConfig({
     allowedHosts: [PREVIEW_ALLOWED_HOST],
     proxy: {
       // Map '^/chat' (prefix) to backend without rewriting.
+      // No trailing slash rewrite issues—path is preserved.
       '/chat': {
         target: 'http://localhost:3001',
         changeOrigin: true,
