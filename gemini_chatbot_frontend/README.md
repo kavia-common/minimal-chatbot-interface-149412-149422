@@ -9,6 +9,14 @@ Minimal React frontend to send a message to the FastAPI backend and display Gemi
    - Copy .env.example to .env and edit VITE_BACKEND_URL (defaults to http://localhost:3001)
 3. Run the dev server (port 3000):
    npm run dev
+   # or
+   npm start
+
+Notes:
+- The dev server binds to 0.0.0.0 on port 3000 to work in preview environments.
+- Build and preview:
+   npm run build
+   npm run preview
 
 ## Usage
 - Type a message and click Send.
