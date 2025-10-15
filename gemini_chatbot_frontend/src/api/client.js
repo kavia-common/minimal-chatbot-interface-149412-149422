@@ -52,6 +52,7 @@ export function getBackendBaseURL() {
  * postChat sends a message to the backend /chat endpoint and returns parsed JSON.
  * - Uses proper JSON headers.
  * - Surfaces non-2xx responses as errors with the backend-supplied message where possible.
+ * - Includes raw response text fallback and request context in error messages.
  * - Safe to call from the UI; it will throw on network/HTTP errors.
  */
 export async function postChat(message) {
@@ -72,7 +73,15 @@ export async function postChat(message) {
   } catch (err) {
     // Network error (CORS, DNS, connection refused, etc.)
     const reason = err?.message || 'Network error';
-    throw new Error(`Failed to fetch: ${reason}`);
+    throw new Error(`Failed to fetch ${url} [POST]: ${reason}`);
+  }
+
+  // Capture raw text for richer error messages, then attempt JSON parse.
+  let rawText = '';
+  try {
+    rawText = await res.clone().text();
+  } catch {
+    rawText = '';
   }
 
   // Attempt to parse JSON (even for error responses if possible)
@@ -85,12 +94,14 @@ export async function postChat(message) {
   }
 
   if (!res.ok) {
-    const backendMsg = data?.error || data?.detail || data?.message;
+    const backendMsg =
+      (data && (data.error || data.detail || data.message)) ||
+      (rawText ? rawText.slice(0, 500) : null);
     const statusText = res.statusText || 'Request failed';
     const msg = backendMsg
       ? `${backendMsg} (HTTP ${res.status})`
       : `${statusText} (HTTP ${res.status})`;
-    throw new Error(msg);
+    throw new Error(`POST ${url} failed: ${msg}`);
   }
 
   return data;

@@ -15,10 +15,13 @@ export default defineConfig({
     port: 3000,
     allowedHosts: [PREVIEW_ALLOWED_HOST],
     proxy: {
+      // Map '^/chat' (prefix) to backend without rewriting.
       '/chat': {
         target: 'http://localhost:3001',
         changeOrigin: true,
         secure: false,
+        // Keep the path as-is; no rewrite to a different subpath
+        rewrite: (path) => path,
       },
     },
   },
