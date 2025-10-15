@@ -5,7 +5,20 @@ This workspace contains the Gemini chatbot frontend.
 ## Frontend (gemini_chatbot_frontend)
 - React + Vite app with Ocean Professional theme.
 - Provides a minimal chat interface that POSTs to the backend `/chat` endpoint.
-- Configure backend URL with `VITE_BACKEND_URL` (default: http://localhost:3001).
+- Configure backend URL with `VITE_BACKEND_URL` (default behavior described below).
+
+### Backend URL resolution and dev proxy
+The frontend uses this resolution order for the backend base URL:
+1) `VITE_BACKEND_URL` if provided (absolute URL recommended).
+2) When running the Vite dev server on port 3000, the app uses a relative path and the dev server proxies `/chat` to `http://localhost:3001`.
+3) Otherwise, it falls back to the same host but forces port `3001`.
+4) Final fallback: `http://localhost:3001`.
+
+The Vite development proxy for `/chat` is configured in `gemini_chatbot_frontend/vite.config.js`.
+
+To set an explicit backend:
+- Copy `gemini_chatbot_frontend/.env.example` to `gemini_chatbot_frontend/.env`
+- Set `VITE_BACKEND_URL=https://your-backend.example.com`
 
 ## Backend Verification
 A sibling workspace exists for the backend: `minimal-chatbot-interface-149412-149421/gemini_chatbot_backend`.
@@ -26,4 +39,4 @@ Findings:
   npm install
   npm run dev
 
-Ensure the backend is available at `VITE_BACKEND_URL` and has CORS enabled for the frontend origin.
+If not using the dev proxy, ensure the backend is available at `VITE_BACKEND_URL` and has CORS enabled for the frontend origin.
